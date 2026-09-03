@@ -1,5 +1,7 @@
 # RouletteRecorder.Dalamud
 
+> 本仓库是基于上游 [RouletteRecorder.Dalamud](https://github.com/StarHeartHunt/RouletteRecorder.Dalamud) 的魔改版本，支持 [dlr.9estu.com](https://dlr.9estu.com) 提供的更详细 API：可在设置中自定义服务器地址，并切换新版/旧版 API；新版 API 会附带任务类型、耗时、完成时间、去重标识与队友信息。
+
 Auto record your daily roulettes including mentor roulettes, [RouletteRecorder](https://github.com/StarHeartHunt/RouletteRecorder) in Dalamud
 
 ## Installation
