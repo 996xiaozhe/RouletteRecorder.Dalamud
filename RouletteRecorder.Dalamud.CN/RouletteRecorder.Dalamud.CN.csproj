@@ -49,6 +49,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="..\RouletteRecorder.Dalamud\RouletteRecorder.Dalamud.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="RouletteRecorder.Dalamud.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>
