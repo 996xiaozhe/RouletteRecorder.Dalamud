@@ -8,7 +8,7 @@
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AssemblyName>RouletteRecorder.Dalamud</AssemblyName>
     <RootNamespace>RouletteRecorder.Dalamud</RootNamespace>
-    <Version>0.6.0.0</Version>
+    <Version>0.6.1.0</Version>
     <DalamudLibPath Condition="'$(DalamudLibPath)' == ''">$(APPDATA)\XIVLauncherCN\addon\Hooks\dev\</DalamudLibPath>
   </PropertyGroup>
 

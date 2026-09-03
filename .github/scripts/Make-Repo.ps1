@@ -4,7 +4,7 @@ $output = New-Object Collections.Generic.List[object]
 
 $content = Get-Content "Release/RouletteRecorder.Dalamud.json" | ConvertFrom-Json
 
-$dlTemplate = "https://github.com/StarHeartHunt/RouletteRecorder.Dalamud/releases/download/v{0}/latest.zip"
+$dlTemplate = "https://github.com/$env:GITHUB_REPOSITORY/releases/download/v{0}/latest.zip"
 
 $content | add-member -Name "IsHide" -value "False" -MemberType NoteProperty
 

@@ -1,10 +1,10 @@
 {
-  "Author": "996xiaozhe",
+  "Author": "StarHeartHunt",
   "Name": "RouletteRecorder",
   "Punchline": "Auto record your daily roulettes including mentor roulettes",
   "Description": "Auto record your daily roulettes, export CSV, and sync completed roulettes to a configurable DungeonLogger server with new or legacy API modes.",
   "InternalName": "RouletteRecorder.Dalamud",
-  "AssemblyVersion": "0.6.0.0",
+  "AssemblyVersion": "0.6.1.0",
   "ApplicableVersion": "any",
   "DalamudApiLevel": 15,
   "Tags": [
