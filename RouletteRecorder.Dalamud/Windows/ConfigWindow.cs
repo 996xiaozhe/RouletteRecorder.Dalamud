@@ -57,7 +57,46 @@ public sealed class ConfigWindow : Window, IDisposable
             {
                 Plugin.Configuration.Save();
             }
-            ;
+
+            var apiNames = new[]
+            {
+                Plugin.Localization.Localize("New API"),
+                Plugin.Localization.Localize("Legacy API"),
+            };
+            var apiIndex = Plugin.Configuration.DungeonLoggerConfig.ApiMode == DungeonLoggerApiMode.Legacy ? 1 : 0;
+
+            ImGui.Text(Plugin.Localization.Localize("Server URL"));
+            ImGui.SameLine();
+            ImGui.SetNextItemWidth(210);
+            if (ImGui.InputText("##dungeonLoggerServerUrl", ref Plugin.Configuration.DungeonLoggerConfig.ServerUrl, 512))
+            {
+                Plugin.Configuration.Save();
+            }
+
+            ImGui.Text(Plugin.Localization.Localize("API Mode"));
+            ImGui.SameLine();
+            if (ImGui.Combo("##dungeonLoggerApiMode", ref apiIndex, apiNames, apiNames.Length))
+            {
+                Plugin.Configuration.DungeonLoggerConfig.ApiMode = apiIndex == 0 ? DungeonLoggerApiMode.New : DungeonLoggerApiMode.Legacy;
+                Plugin.Configuration.Save();
+            }
+
+            if (ImGui.SmallButton(Plugin.Localization.Localize("Use new API default URL")))
+            {
+                Plugin.Configuration.DungeonLoggerConfig.ApiMode = DungeonLoggerApiMode.New;
+                Plugin.Configuration.DungeonLoggerConfig.ServerUrl = DungeonLoggerConfig.DefaultNewApiServerUrl;
+                Plugin.Configuration.Save();
+            }
+
+            ImGui.SameLine();
+            if (ImGui.SmallButton(Plugin.Localization.Localize("Use legacy API default URL")))
+            {
+                Plugin.Configuration.DungeonLoggerConfig.ApiMode = DungeonLoggerApiMode.Legacy;
+                Plugin.Configuration.DungeonLoggerConfig.ServerUrl = DungeonLoggerConfig.DefaultLegacyApiServerUrl;
+                Plugin.Configuration.Save();
+            }
+
+            ImGui.TextWrapped(Plugin.Localization.Localize("Server address should be the website root and must not include /api. New API mode sends full records with roulette type, duration, time, source id and party; legacy API mode sends only mazeId and profKey."));
 
             if (Plugin.Configuration.DungeonLoggerConfig.Enabled)
             {
@@ -74,7 +113,6 @@ public sealed class ConfigWindow : Window, IDisposable
                 {
                     Plugin.Configuration.Save();
                 }
-                ;
             }
 
             if (ImGui.Button(Plugin.Localization.Localize("Test Login")))
@@ -111,7 +149,8 @@ public sealed class ConfigWindow : Window, IDisposable
 
         try
         {
-            using var client = new DungeonLoggerClient();
+            var config = Plugin.Configuration.DungeonLoggerConfig;
+            using var client = new DungeonLoggerClient(config.ServerUrl, config.ApiMode);
             var response = await client.PostLogin(password, username);
             loginStatus = response?.Code != 0 ? LoginStatus.Failed : LoginStatus.Success;
             loginResponseMessage = response?.Msg ?? string.Empty;

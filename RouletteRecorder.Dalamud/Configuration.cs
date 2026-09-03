@@ -8,6 +8,12 @@ using System.IO;
 
 namespace RouletteRecorder.Dalamud;
 
+public enum DungeonLoggerApiMode
+{
+    New,
+    Legacy,
+}
+
 [Serializable]
 public class DungeonLoggerConfig
 {
@@ -18,6 +24,15 @@ public class DungeonLoggerConfig
 
     [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
     public string Password = string.Empty;
+
+    [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
+    public string ServerUrl = DefaultNewApiServerUrl;
+
+    [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
+    public DungeonLoggerApiMode ApiMode = DungeonLoggerApiMode.New;
+
+    public const string DefaultNewApiServerUrl = "https://dlr.9estu.com";
+    public const string DefaultLegacyApiServerUrl = "https://dlog.luyulight.cn";
 }
 
 

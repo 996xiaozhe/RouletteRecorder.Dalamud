@@ -1,5 +1,7 @@
 # RouletteRecorder.Dalamud
 
+> 本仓库是基于上游 [RouletteRecorder.Dalamud](https://github.com/StarHeartHunt/RouletteRecorder.Dalamud) 的魔改版本，支持 [dlr.9estu.com](https://dlr.9estu.com) 提供的更详细 API：可在设置中自定义服务器地址，并切换新版/旧版 API；新版 API 会附带任务类型、耗时、完成时间、去重标识与队友信息。
+
 Auto record your daily roulettes including mentor roulettes, [RouletteRecorder](https://github.com/StarHeartHunt/RouletteRecorder) in Dalamud
 
 ## Installation
@@ -14,6 +16,17 @@ Main UI can be accessed via the Plugin Installer or using the chat command `/prr
   After using the command `/prr`, click on `Show Settings` button, expand `Subscribed Roulette Types` and select Roulette Types to subscribe
 
 2. Enjoy!
+
+### DungeonLogger upload
+
+In `Show Settings`, expand `DungeonLogger Account Config` to configure the service address and account.
+
+- **Server URL** — the website root address, for example `https://dlr.9estu.com`. Do not append `/api` or any endpoint path.
+- **API mode** — select one of two request formats:
+  - `New API` (default) sends the complete record payload: `mazeId`, `profKey`, `rouletteId`, `rouletteType`, `durationSeconds`, `occurredAt`, `sourceId` and `party`.
+  - `Legacy API` keeps the original minimal upload (`mazeId` + `profKey`) for servers that only implement the old protocol.
+
+The two shortcut buttons fill in the default address for each API mode.
 
 ## Develop
 
@@ -31,6 +44,14 @@ RouletteRecorder.Dalamud assumes all the following prerequisites are met:
 1. Open up `RouletteRecorder.Dalamud.sln` in your C# editor of choice (likely [Visual Studio 2022](https://visualstudio.microsoft.com) or [JetBrains Rider](https://www.jetbrains.com/rider/)).
 2. Build the solution. By default, this will build a `Debug` build, but you can switch to `Release` in your IDE.
 3. The resulting plugin can be found at `RouletteRecorder.Dalamud/bin/Debug/RouletteRecorder.Dalamud.dll` (or `Release` if appropriate.)
+
+For the CN (XIVLauncherCN) Dalamud runtime, use the `RouletteRecorder.Dalamud.CN` project instead:
+
+```powershell
+dotnet build RouletteRecorder.Dalamud.CN\RouletteRecorder.Dalamud.CN.csproj -c Release
+```
+
+Its output is `RouletteRecorder.Dalamud.CN/bin/Release/RouletteRecorder.Dalamud.dll`.
 
 ### Activating in-game
 
