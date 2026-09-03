@@ -15,6 +15,17 @@ Main UI can be accessed via the Plugin Installer or using the chat command `/prr
 
 2. Enjoy!
 
+### DungeonLogger upload
+
+In `Show Settings`, expand `DungeonLogger Account Config` to configure the service address and account.
+
+- **Server URL** — the website root address, for example `https://dlr.9estu.com`. Do not append `/api` or any endpoint path.
+- **API mode** — select one of two request formats:
+  - `New API` (default) sends the complete record payload: `mazeId`, `profKey`, `rouletteId`, `rouletteType`, `durationSeconds`, `occurredAt`, `sourceId` and `party`.
+  - `Legacy API` keeps the original minimal upload (`mazeId` + `profKey`) for servers that only implement the old protocol.
+
+The two shortcut buttons fill in the default address for each API mode.
+
 ## Develop
 
 ### Prerequisites
@@ -31,6 +42,14 @@ RouletteRecorder.Dalamud assumes all the following prerequisites are met:
 1. Open up `RouletteRecorder.Dalamud.sln` in your C# editor of choice (likely [Visual Studio 2022](https://visualstudio.microsoft.com) or [JetBrains Rider](https://www.jetbrains.com/rider/)).
 2. Build the solution. By default, this will build a `Debug` build, but you can switch to `Release` in your IDE.
 3. The resulting plugin can be found at `RouletteRecorder.Dalamud/bin/Debug/RouletteRecorder.Dalamud.dll` (or `Release` if appropriate.)
+
+For the CN (XIVLauncherCN) Dalamud runtime, use the `RouletteRecorder.Dalamud.CN` project instead:
+
+```powershell
+dotnet build RouletteRecorder.Dalamud.CN\RouletteRecorder.Dalamud.CN.csproj -c Release
+```
+
+Its output is `RouletteRecorder.Dalamud.CN/bin/Release/RouletteRecorder.Dalamud.dll`.
 
 ### Activating in-game
 

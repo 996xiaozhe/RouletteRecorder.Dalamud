@@ -18,6 +18,7 @@ public sealed class Plugin : IDalamudPlugin
     [PluginService] internal static IChatGui ChatGui { get; private set; } = null!;
     [PluginService] internal static IClientState ClientState { get; private set; } = null!;
     [PluginService] internal static IPlayerState PlayerState { get; private set; } = null!;
+    [PluginService] internal static IPartyList PartyList { get; private set; } = null!;
     [PluginService] internal static ICommandManager CommandManager { get; private set; } = null!;
     [PluginService] internal static IDataManager DataManager { get; private set; } = null!;
     [PluginService] internal static IDutyState DutyState { get; private set; } = null!;
@@ -130,7 +131,7 @@ public sealed class Plugin : IDalamudPlugin
             PluginLog.Debug($"[OnCfPop] Detected roulette pop: {rouletteType}");
         }
 
-        Roulette.Init(null, rouletteType);
+        Roulette.Init(null, rouletteType, contentRouletteId: poppedContentId);
 
         PluginLog.Debug(
             $"[OnCfPop] PoppedContentType: {poppedContentType}, PoppedContentId: {poppedContentId}, rouletteType: {rouletteType}"

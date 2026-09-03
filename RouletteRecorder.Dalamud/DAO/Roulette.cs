@@ -1,13 +1,17 @@
 using Dalamud.Utility;
 using RouletteRecorder.Dalamud.Network.DungeonLogger;
+using RouletteRecorder.Dalamud.Network.DungeonLogger.Structures;
 using RouletteRecorder.Dalamud.Utils;
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace RouletteRecorder.Dalamud.DAO;
 
-public class Roulette(string? contentName, string? rouletteType, bool isCompleted = false)
+public class Roulette(string? contentName, string? rouletteType, bool isCompleted = false, uint? contentRouletteId = null)
 {
     public string? RouletteType { get; set; } = rouletteType;
     public string Date { get; set; } = DateTime.Now.ToString("yyyy-MM-dd");
@@ -16,11 +20,14 @@ public class Roulette(string? contentName, string? rouletteType, bool isComplete
     public string? ContentName { get; set; } = contentName;
     public string? JobName { get; set; }
     public bool IsCompleted { get; set; } = isCompleted;
+    public uint? ContentRouletteId { get; set; } = contentRouletteId;
+    public DateTimeOffset StartedAtOffset { get; set; } = DateTimeOffset.Now;
+    public DateTimeOffset? EndedAtOffset { get; set; }
     public static Roulette? Instance { get; private set; }
 
-    public static void Init(string? contentName = null, string? rouletteType = null, bool isCompleted = false)
+    public static void Init(string? contentName = null, string? rouletteType = null, bool isCompleted = false, uint? contentRouletteId = null)
     {
-        Instance = new Roulette(contentName, rouletteType, isCompleted);
+        Instance = new Roulette(contentName, rouletteType, isCompleted, contentRouletteId);
     }
 
     public static void Init(Roulette instance)
@@ -40,6 +47,7 @@ public class Roulette(string? contentName, string? rouletteType, bool isComplete
 
             Instance.JobName = Plugin.GetJobName() ?? "未知职业";
             Instance.EndedAt = DateTime.Now.ToString("T");
+            Instance.EndedAtOffset = DateTimeOffset.Now;
 
             Database.InsertRoulette(Instance);
             if (Instance.IsCompleted && Plugin.Configuration.DungeonLoggerConfig.Enabled) await UploadDungeonLogger();
@@ -70,8 +78,11 @@ public class Roulette(string? contentName, string? rouletteType, bool isComplete
                 return;
             }
 
-            using var client = new DungeonLoggerClient();
-            await client.PostLogin(password, username);
+            using var client = new DungeonLoggerClient(
+                Plugin.Configuration.DungeonLoggerConfig.ServerUrl,
+                Plugin.Configuration.DungeonLoggerConfig.ApiMode);
+            var login = await client.PostLogin(password, username);
+            if (login?.Code != 0) throw new Exception($"login failed: {login?.Msg}");
 
             var maze = await client.GetStatMaze();
             if (maze?.Data == null) throw new Exception("maze data from DungeonLogger is null");
@@ -83,11 +94,81 @@ public class Roulette(string? contentName, string? rouletteType, bool isComplete
                          throw new Exception("cannot convert to DungeonLogger mazeId");
             var profKey = job.Data.Find(ele => ele.NameCn.Equals(Instance.JobName))?.Key ??
                           throw new Exception("cannot convert to DungeonLogger profKey");
-            await client.PostRecord(mazeId, profKey);
+
+            var payload = new DungeonLoggerRecord
+            {
+                MazeId = mazeId,
+                ProfKey = profKey,
+                RouletteId = Instance.ContentRouletteId.HasValue ? (int)Instance.ContentRouletteId.Value : null,
+                RouletteType = Instance.RouletteType,
+                DurationSeconds = BuildDurationSeconds(Instance),
+                OccurredAt = Instance.EndedAtOffset ?? Instance.StartedAtOffset,
+                SourceId = BuildSourceId(Instance),
+                Party = CapturePartyMembers(),
+            };
+
+            var upload = await client.PostRecord(payload);
+            if (upload?.Code != 0) throw new Exception(upload?.Msg ?? "unknown upload error");
         }
         catch (Exception e)
         {
             Plugin.PluginLog.Error(e, "Failed to upload roulette result to DungeonLogger");
         }
     }
+
+    private static int? BuildDurationSeconds(Roulette roulette)
+    {
+        if (!roulette.EndedAtOffset.HasValue || roulette.EndedAtOffset <= roulette.StartedAtOffset) return null;
+
+        return (int?)Math.Clamp(
+            (long)Math.Round((roulette.EndedAtOffset.Value - roulette.StartedAtOffset).TotalSeconds),
+            1,
+            86400);
+    }
+
+    private static string BuildSourceId(Roulette roulette)
+    {
+        var seed = $"{roulette.ContentName}|{roulette.RouletteType}|{roulette.StartedAtOffset:O}";
+        var hash = SHA256.HashData(Encoding.UTF8.GetBytes(seed));
+        return "rr-" + Convert.ToHexString(hash).ToLowerInvariant()[..24];
+    }
+
+    private static List<DungeonLoggerPartyMember> CapturePartyMembers()
+    {
+        var result = new List<DungeonLoggerPartyMember>();
+        try
+        {
+            var localPlayerName = Plugin.PlayerState.CharacterName;
+            foreach (var member in Plugin.PartyList)
+            {
+                if (member == null) continue;
+
+                var name = member.Name.TextValue;
+                if (string.IsNullOrWhiteSpace(name)) continue;
+                if (localPlayerName != null && string.Equals(name, localPlayerName, StringComparison.OrdinalIgnoreCase)) continue;
+
+                var classJob = member.ClassJob.Value;
+                result.Add(new DungeonLoggerPartyMember
+                {
+                    Name = name,
+                    World = member.World.IsValid ? member.World.Value.Name.ToString() : null,
+                    Job = classJob.Abbreviation.ToString(),
+                    Role = RoleName(classJob.Role),
+                });
+            }
+        }
+        catch (Exception e)
+        {
+            Plugin.PluginLog.Warning(e, "Failed to capture party members for DungeonLogger upload");
+        }
+
+        return result;
+    }
+
+    private static string RoleName(uint role) => role switch
+    {
+        1 => "TANK",
+        4 => "HEALER",
+        _ => "DPS",
+    };
 }
